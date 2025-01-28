@@ -1,0 +1,5 @@
+{
+    "name": "test_folder",
+    "folder": { },
+    "@microsoft.graph.conflictBehavior": "rename"
+  }
