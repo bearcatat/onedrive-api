@@ -1,0 +1,36 @@
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+    "createdDateTime": "2023-01-01T00:00:00Z",
+    "description": "",
+    "id": "b!-XXXXXXXXXXXXX-XXXX-XXXXXXXXXXXXXX",
+    "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+    "name": "OneDrive",
+    "webUrl": "https://example-my.sharepoint.com/personal/example/Documents",
+    "driveType": "business",
+    "createdBy": {
+        "user": {
+            "displayName": "System Account"
+        }
+    },
+    "lastModifiedBy": {
+        "user": {
+            "email": "user@example.com",
+            "id": "user-id",
+            "displayName": "Example User"
+        }
+    },
+    "owner": {
+        "user": {
+            "email": "owner@example.com",
+            "id": "owner-id",
+            "displayName": "Owner User"
+        }
+    },
+    "quota": {
+        "deleted": 0,
+        "remaining": 1000000000000,
+        "state": "normal",
+        "total": 1000000000000,
+        "used": 100000000
+    }
+}

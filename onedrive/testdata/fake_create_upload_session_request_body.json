@@ -1,0 +1,5 @@
+{
+    "item": {
+        "@microsoft.graph.conflictBehavior": "rename"
+    }
+}

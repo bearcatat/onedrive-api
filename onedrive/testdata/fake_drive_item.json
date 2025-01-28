@@ -1,0 +1,49 @@
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('XXXXXX')/root/$entity",
+    "@microsoft.graph.tips": "Use $select to choose only the properties your app needs, as this can lead to performance improvements. For example: GET drives('<key>')/root?$select=audio,bundle",
+    "createdDateTime": "2023-01-01T00:00:00Z",
+    "eTag": "\"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX},44\"",
+    "id": "XXXXXXXXXXXX!105",
+    "lastModifiedDateTime": "2023-12-01T00:00:00Z",
+    "name": "File",
+    "webUrl": "https://onedrive.live.com?cid=XXXXXXXXXXXX&id=XXXXXXXXXXXX!105",
+    "cTag": "\"c:{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX},0\"",
+    "size": 123456789,
+    "createdBy": {
+        "user": {
+            "email": "user@example.com",
+            "id": "XXXXXXXXXXXX",
+            "displayName": "Example User"
+        }
+    },
+    "lastModifiedBy": {
+        "user": {
+            "email": "user@example.com",
+            "id": "XXXXXXXXXXXX",
+            "displayName": "Example User"
+        }
+    },
+    "parentReference": {
+        "driveType": "personal",
+        "driveId": "XXXXXXXXXXXX",
+        "id": "XXXXXXXXXXXX!XXXXXXXX",
+        "name": "Documents",
+        "path": "/drives/XXXXXXXXXXXX/root:",
+        "siteId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    },
+    "fileSystemInfo": {
+        "createdDateTime": "2023-01-01T00:00:00Z",
+        "lastModifiedDateTime": "2023-12-01T00:00:00Z"
+    },
+    "folder": {
+        "childCount": 15,
+        "view": {
+            "sortBy": "name",
+            "sortOrder": "ascending",
+            "viewType": "thumbnails"
+        }
+    },
+    "specialFolder": {
+        "name": "documents"
+    }
+}
