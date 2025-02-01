@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bearcatat/onedriver-api/resources"
+	"github.com/bearcatat/onedrive-api/resources"
 )
 
 func setup_drive_item() (driveItem *DriveItem, mux *http.ServeMux, teardown func()) {

@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/bearcatat/onedriver-api/http"
-	"github.com/bearcatat/onedriver-api/resources"
+	"github.com/bearcatat/onedrive-api/http"
+	"github.com/bearcatat/onedrive-api/resources"
 )
 
 const (

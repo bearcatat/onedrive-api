@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bearcatat/onedriver-api/resources"
+	"github.com/bearcatat/onedrive-api/resources"
 )
 
 func setup_async_job() (asyncJob *AsyncJob, mux *http.ServeMux, teardown func()) {
