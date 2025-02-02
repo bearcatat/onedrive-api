@@ -185,3 +185,8 @@ func NewMoveRequest(parentItem *DriveItem, drive *Drive, newName string) *DriveI
 	}
 	return r
 }
+
+type Children struct {
+	Value   []DriveItem `json:"value,omitempty"`
+	NextURL string      `json:"@odata.nextLink,omitempty"`
+}

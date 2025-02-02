@@ -14,7 +14,7 @@ type Drive struct {
 	*resources.Drive
 }
 
-func NewDrive(c *core, drive *resources.Drive) *Drive {
+func newDrive(c *core, drive *resources.Drive) *Drive {
 	return &Drive{
 		core:  c,
 		Drive: drive,
@@ -27,7 +27,7 @@ func (d *Drive) GetByPath(ctx context.Context, path string) (*DriveItem, error) 
 	if err != nil {
 		return nil, err
 	}
-	return NewDriveItem(d.core, driverItem, d.Drive), nil
+	return newDriveItem(d.core, driverItem, d.Drive), nil
 }
 
 func (d *Drive) getByPathRequest(path string) http.Request {
@@ -41,7 +41,7 @@ func (d *Drive) Get(ctx context.Context, itemId string) (*DriveItem, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewDriveItem(d.core, driverItem, d.Drive), nil
+	return newDriveItem(d.core, driverItem, d.Drive), nil
 }
 
 func (d *Drive) getRequest(itemId string) http.Request {

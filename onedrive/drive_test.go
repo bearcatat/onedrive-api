@@ -13,7 +13,7 @@ import (
 func setup_drive() (drive *Drive, mux *http.ServeMux, teardown func()) {
 	url, mux, teardown := setup()
 	core := newCore(&http.Client{})
-	drive = NewDrive(core, &resources.Drive{Id: "fake_drive_id"})
+	drive = newDrive(core, &resources.Drive{Id: "fake_drive_id"})
 	drive.url.baseURL = url
 	return drive, mux, teardown
 }

@@ -21,4 +21,6 @@ The library currently supports the following Microsoft Graph REST API endpoints:
 * [PATCH /drives/{drive-id}/items/{item-id}](https://docs.microsoft.com/en-us/graph/api/driveitem-update?view=graph-rest-1.0): Update the properties of a DriveItem.
 * [POST /drives/{drive-id}/items/{item-id}/copy](https://docs.microsoft.com/en-us/graph/api/driveitem-copy?view=graph-rest-1.0): Copy a DriveItem to a specified location.
 * [DELETE /drives/{drive-id}/items/{item-id}](https://docs.microsoft.com/en-us/graph/api/driveitem-delete?view=graph-rest-1.0): Delete a DriveItem by its ID.
+* [PATCH /drives/{drive-id}/items/{item-id}](https://docs.microsoft.com/en-us/graph/api/driveitem-update?view=graph-rest-1.0): Move a DriveItem to a specified location.
+* [GET /drives/{drive-id}/items/{item-id}/children](https://docs.microsoft.com/en-us/graph/api/driveitem-list-children?view=graph-rest-1.0): List the children of a DriveItem.
 

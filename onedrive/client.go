@@ -37,5 +37,5 @@ func (c *Client) GetMyDrive(ctx context.Context) (*Drive, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewDrive(c.core, drive), nil
+	return newDrive(c.core, drive), nil
 }

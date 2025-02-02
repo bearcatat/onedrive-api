@@ -14,7 +14,7 @@ func setup_async_job() (asyncJob *AsyncJob, mux *http.ServeMux, teardown func())
 	url, mux, teardown := setup()
 	core := newCore(&http.Client{})
 	asyncJobURL := url.String() + "async_job"
-	asyncJob = NewAsyncJob(core, &resources.AsyncJob{Url: asyncJobURL}, &resources.Drive{Id: "fake_drive_id"})
+	asyncJob = newAsyncJob(core, &resources.AsyncJob{Url: asyncJobURL}, &resources.Drive{Id: "fake_drive_id"})
 	asyncJob.url.baseURL = url
 	return asyncJob, mux, teardown
 }

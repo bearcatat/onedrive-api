@@ -17,7 +17,7 @@ type AsyncJob struct {
 	drive  *resources.Drive
 }
 
-func NewAsyncJob(c *core, asyncJob *resources.AsyncJob, drive *resources.Drive) *AsyncJob {
+func newAsyncJob(c *core, asyncJob *resources.AsyncJob, drive *resources.Drive) *AsyncJob {
 	return &AsyncJob{
 		core:     c,
 		AsyncJob: asyncJob,
@@ -35,7 +35,7 @@ func (a *AsyncJob) GetResource(ctx context.Context) (*DriveItem, error) {
 	if a.status.Status != resources.FINISHED {
 		return nil, ErrNotFinished
 	}
-	drive := NewDrive(a.core, a.drive)
+	drive := newDrive(a.core, a.drive)
 	return drive.Get(ctx, a.status.ResourceId)
 }
 

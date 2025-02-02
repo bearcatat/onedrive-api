@@ -12,12 +12,11 @@ const (
 
 // TODO:
 //  - Download
-//  - Move
 //  - List shared files
 //  - Recent files
-//  - List children
 //  - Search
 //  - Upload
+//  - Query String Parameters
 
 type oneDriveURL struct {
 	baseURL *url.URL
@@ -85,5 +84,11 @@ func (u *oneDriveURL) Copy(driverId, itemId string) *url.URL {
 // PATCH /drives/{drive-id}/items/{item-id}
 func (u *oneDriveURL) Move(driverId, itemId string) *url.URL {
 	relativePath := fmt.Sprintf("/drives/%s/items/%s", driverId, itemId)
+	return u.baseURL.JoinPath(relativePath)
+}
+
+// GET /drives/{drive-id}/items/{item-id}/children
+func (u *oneDriveURL) ListChildren(driverId, itemId string) *url.URL {
+	relativePath := fmt.Sprintf("/drives/%s/items/%s/children", driverId, itemId)
 	return u.baseURL.JoinPath(relativePath)
 }

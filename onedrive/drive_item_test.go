@@ -16,7 +16,7 @@ import (
 func setup_drive_item() (driveItem *DriveItem, mux *http.ServeMux, teardown func()) {
 	url, mux, teardown := setup()
 	core := newCore(&http.Client{})
-	driveItem = NewDriveItem(core, &resources.DriveItem{Id: "fake_drive_item_id"}, &resources.Drive{Id: "fake_drive_id"})
+	driveItem = newDriveItem(core, &resources.DriveItem{Id: "fake_drive_item_id"}, &resources.Drive{Id: "fake_drive_id"})
 	driveItem.url.baseURL = url
 	return driveItem, mux, teardown
 }
@@ -372,5 +372,43 @@ func TestDriveItem_Move_Failed(t *testing.T) {
 	}, "")
 	if err == nil {
 		t.Errorf("DriveItem.Move should return error")
+	}
+}
+
+func TestDriveItem_ListChildren(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/children", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		jsonData := readFile(t, "fake_children.json")
+		fmt.Fprint(w, string(jsonData))
+	})
+
+	ctx := context.Background()
+	children, err := driveItem.ListChildren(ctx)
+	if err != nil {
+		t.Errorf("DriveItem.ListChildren returned error: %v", err)
+	}
+	expectedChildren := getDataFromFile[*resources.Children](t, "fake_children.json")
+	if !reflect.DeepEqual(children.raw, expectedChildren) {
+		t.Errorf("DriveItem.ListChildren returned %+v, want %+v", children, expectedChildren)
+	}
+}
+
+func TestDriveItem_ListChildren_Failed(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/children", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		jsonData := readFile(t, "fake_error.json")
+		fmt.Fprint(w, string(jsonData))
+	})
+
+	ctx := context.Background()
+	_, err := driveItem.ListChildren(ctx)
+	if err == nil {
+		t.Errorf("DriveItem.ListChildren should return error")
 	}
 }

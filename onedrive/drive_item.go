@@ -15,7 +15,7 @@ type DriveItem struct {
 	drive *resources.Drive
 }
 
-func NewDriveItem(c *core, driveItem *resources.DriveItem, drive *resources.Drive) *DriveItem {
+func newDriveItem(c *core, driveItem *resources.DriveItem, drive *resources.Drive) *DriveItem {
 	return &DriveItem{
 		core:      c,
 		DriveItem: driveItem,
@@ -29,7 +29,7 @@ func (i *DriveItem) CreateFolder(ctx context.Context, folderName string) (*Drive
 	if err != nil {
 		return nil, err
 	}
-	return NewDriveItem(i.core, driveItem, i.drive), nil
+	return newDriveItem(i.core, driveItem, i.drive), nil
 }
 
 func (i *DriveItem) createFolderRequest(folderName string) http.Request {
@@ -77,7 +77,7 @@ func (i *DriveItem) uploadFileToUploadSession(ctx context.Context, file File, se
 			return nil, err
 		}
 	}
-	return NewDriveItem(i.core, &response.DriveItem, i.drive), nil
+	return newDriveItem(i.core, &response.DriveItem, i.drive), nil
 }
 
 func (i *DriveItem) uploadFileFragmentToUploadSession(ctx context.Context, file *fileForUpload) (*resources.UploadSessionResponse, error) {
@@ -99,7 +99,7 @@ func (i *DriveItem) Update(ctx context.Context, update *DriveItem) (*DriveItem, 
 	if err != nil {
 		return nil, err
 	}
-	return NewDriveItem(i.core, driveItem, i.drive), nil
+	return newDriveItem(i.core, driveItem, i.drive), nil
 }
 
 func (i *DriveItem) updateRequest(item *DriveItem) http.Request {
@@ -122,7 +122,7 @@ func (i *DriveItem) Copy(ctx context.Context, parentItem *DriveItem, newName str
 	if err != nil {
 		return nil, err
 	}
-	return NewAsyncJob(i.core, asyncJob, i.drive), nil
+	return newAsyncJob(i.core, asyncJob, i.drive), nil
 }
 
 func (i *DriveItem) copyRequest(parentItem *DriveItem, newName string) http.Request {
@@ -136,10 +136,24 @@ func (i *DriveItem) Move(ctx context.Context, parentItem *DriveItem, newName str
 	if err != nil {
 		return nil, err
 	}
-	return NewDriveItem(i.core, item, i.drive), nil
+	return newDriveItem(i.core, item, i.drive), nil
 }
 
 func (i *DriveItem) moveRequest(parentItem *DriveItem, newName string) http.Request {
 	url := i.url.Move(i.drive.Id, i.DriveItem.Id)
 	return http.NewJsonRequest(http2.MethodPatch, url, resources.NewMoveRequest(parentItem.DriveItem, parentItem.drive, newName))
+}
+
+func (i *DriveItem) ListChildren(ctx context.Context) (*Children, error) {
+	var children *resources.Children
+	err := i.client.DoWithAuth(ctx, i.listChildrenRequest(), &children)
+	if err != nil {
+		return nil, err
+	}
+	return newChildren(i.core, children, i.drive), nil
+}
+
+func (i *DriveItem) listChildrenRequest() http.Request {
+	url := i.url.ListChildren(i.drive.Id, i.DriveItem.Id)
+	return http.NewJsonRequest(http2.MethodGet, url, nil)
 }
