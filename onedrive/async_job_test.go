@@ -31,7 +31,6 @@ func TestAsyncJob_GetResource_Finished(t *testing.T) {
 		testMethod(t, r, "GET")
 		jsonData := readFile(t, "fake_drive_item.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusOK)
 	})
 
 	ctx := context.Background()
@@ -53,14 +52,12 @@ func TestAsyncJob_GetResource_Finshed_NilStatus(t *testing.T) {
 		testMethod(t, r, "GET")
 		jsonData := readFile(t, "fake_drive_item.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusOK)
 	})
 
 	mux.HandleFunc("/async_job", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		jsonData := readFile(t, "fake_finshed_async_job.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusOK)
 	})
 	ctx := context.Background()
 	item, err := asyncJob.GetResource(ctx)
@@ -96,9 +93,10 @@ func TestAsyncJob_GetResource_Failed(t *testing.T) {
 
 	mux.HandleFunc("async_job", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+
+		w.WriteHeader(http.StatusNotFound)
 		jsonData := readFile(t, "fake_error.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusNotFound)
 	})
 	ctx := context.Background()
 	_, err := asyncJob.GetResource(ctx)
@@ -132,7 +130,6 @@ func TestAsyncJob_IsFinished_InProgress(t *testing.T) {
 		testMethod(t, r, "GET")
 		jsonData := readFile(t, "fake_in_progress_async_job.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusOK)
 	})
 	ctx := context.Background()
 	isFinished, err := asyncJob.IsFinished(ctx)

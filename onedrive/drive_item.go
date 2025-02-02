@@ -116,16 +116,30 @@ func (i *DriveItem) deleteReqeust() http.Request {
 	return http.NewJsonRequest(http2.MethodDelete, url, nil)
 }
 
-func (i *DriveItem) Copy(ctx context.Context, parentItem *DriveItem) (*AsyncJob, error) {
+func (i *DriveItem) Copy(ctx context.Context, parentItem *DriveItem, newName string) (*AsyncJob, error) {
 	var asyncJob *resources.AsyncJob
-	err := i.client.DoWithAuth(ctx, i.copyRequest(parentItem), &asyncJob)
+	err := i.client.DoWithAuth(ctx, i.copyRequest(parentItem, newName), &asyncJob)
 	if err != nil {
 		return nil, err
 	}
 	return NewAsyncJob(i.core, asyncJob, i.drive), nil
 }
 
-func (i *DriveItem) copyRequest(parentItem *DriveItem) http.Request {
+func (i *DriveItem) copyRequest(parentItem *DriveItem, newName string) http.Request {
 	url := i.url.Copy(i.drive.Id, i.DriveItem.Id)
-	return http.NewJsonRequest(http2.MethodPost, url, resources.NewCopyRequest(parentItem.DriveItem, parentItem.drive))
+	return http.NewJsonRequest(http2.MethodPost, url, resources.NewCopyRequest(parentItem.DriveItem, parentItem.drive, newName))
+}
+
+func (i *DriveItem) Move(ctx context.Context, parentItem *DriveItem, newName string) (*DriveItem, error) {
+	var item *resources.DriveItem
+	err := i.client.DoWithAuth(ctx, i.moveRequest(parentItem, newName), &item)
+	if err != nil {
+		return nil, err
+	}
+	return NewDriveItem(i.core, item, i.drive), nil
+}
+
+func (i *DriveItem) moveRequest(parentItem *DriveItem, newName string) http.Request {
+	url := i.url.Move(i.drive.Id, i.DriveItem.Id)
+	return http.NewJsonRequest(http2.MethodPatch, url, resources.NewMoveRequest(parentItem.DriveItem, parentItem.drive, newName))
 }

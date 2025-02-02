@@ -81,3 +81,9 @@ func (u *oneDriveURL) Copy(driverId, itemId string) *url.URL {
 	relativePath := fmt.Sprintf("/drives/%s/items/%s/copy", driverId, itemId)
 	return u.baseURL.JoinPath(relativePath)
 }
+
+// PATCH /drives/{drive-id}/items/{item-id}
+func (u *oneDriveURL) Move(driverId, itemId string) *url.URL {
+	relativePath := fmt.Sprintf("/drives/%s/items/%s", driverId, itemId)
+	return u.baseURL.JoinPath(relativePath)
+}

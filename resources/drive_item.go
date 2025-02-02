@@ -15,10 +15,11 @@ type DriveItem struct {
 	Location    *GeoCoordinates `json:"location,omitempty"`
 	Name        string          `json:"name,omitempty"`
 	//Todo RemoteItem
-	Photo  *Photo `json:"photo,omitempty"`
-	Size   int64  `json:"size,omitempty"`
-	Video  *Video `json:"video,omitempty"`
-	WebURL string `json:"webUrl,omitempty"`
+	Photo           *Photo         `json:"photo,omitempty"`
+	ParentReference *ItemReference `json:"parentReference,omitempty"`
+	Size            int64          `json:"size,omitempty"`
+	Video           *Video         `json:"video,omitempty"`
+	WebURL          string         `json:"webUrl,omitempty"`
 }
 
 type Photo struct {
@@ -32,7 +33,6 @@ type Photo struct {
 	Iso                 int     `json:"iso,omitempty"`
 }
 
-// Video represents the video metadata of a OneDrive drive item.
 type Video struct {
 	Duration              int     `json:"duration,omitempty"`
 	Height                float64 `json:"height,omitempty"`
@@ -71,9 +71,6 @@ type File struct {
 	ProcessingMetadata bool   `json:"processingMetadata,omitempty"`
 }
 
-// Folder
-// childCount	Int32	Number of children contained immediately within this container.
-// view	folderView	A collection of properties defining the recommended view for the folder.
 type Folder struct {
 	ChildCount int        `json:"childCount,omitempty"`
 	View       FolderView `json:"view,omitempty"`
@@ -104,6 +101,17 @@ type FolderView struct {
 	SortBy    string `json:"sortBy,omitempty"`
 	SortOrder string `json:"sortOrder,omitempty"`
 	ViewType  string `json:"viewType,omitempty"`
+}
+
+type ItemReference struct {
+	DriveID   string `json:"driveId,omitempty"`
+	DriveType string `json:"driveType,omitempty"`
+	ID        string `json:"id,omitempty"`
+	ListID    string `json:"listId,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Path      string `json:"path,omitempty"`
+	ShareID   string `json:"shareId,omitempty"`
+	SiteID    string `json:"siteId,omitempty"`
 }
 
 func NewCreateFolderRequest(folderName string) *CreateFolderRequest {
@@ -153,28 +161,27 @@ type UploadSessionResponse struct {
 	DriveItem
 }
 
-type CopyRequest struct {
-	ParentReference *ItemReference `json:"parentReference,omitempty"`
-	Name            string         `json:"name,omitempty"`
-}
-
-func NewCopyRequest(parentItem *DriveItem, drive *Drive) *CopyRequest {
-	return &CopyRequest{
+func NewCopyRequest(parentItem *DriveItem, drive *Drive, newName string) *DriveItem {
+	r := &DriveItem{
 		ParentReference: &ItemReference{
 			ID:      parentItem.Id,
 			DriveID: drive.Id,
 		},
-		Name: parentItem.Name,
 	}
+	if newName != "" {
+		r.Name = newName
+	}
+	return r
 }
 
-type ItemReference struct {
-	DriveID   string `json:"driveId,omitempty"`
-	DriveType string `json:"driveType,omitempty"`
-	ID        string `json:"id,omitempty"`
-	ListID    string `json:"listId,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Path      string `json:"path,omitempty"`
-	ShareID   string `json:"shareId,omitempty"`
-	SiteID    string `json:"siteId,omitempty"`
+func NewMoveRequest(parentItem *DriveItem, drive *Drive, newName string) *DriveItem {
+	r := &DriveItem{
+		ParentReference: &ItemReference{
+			ID: parentItem.Id,
+		},
+	}
+	if newName != "" {
+		r.Name = newName
+	}
+	return r
 }

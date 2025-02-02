@@ -45,8 +45,8 @@ func TestClient_GetMyDrive_Fail(t *testing.T) {
 	mux.HandleFunc("/me/drive", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
 		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, string(jsonData))
 	})
 
 	ctx := context.Background()

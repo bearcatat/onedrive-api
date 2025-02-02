@@ -106,13 +106,13 @@ func TestDriveItem_UploadLargeFile(t *testing.T) {
 		testHeader(t, r, "Content-Range", fakeFile.ContentRange())
 		testHeader(t, r, "Content-Length", fakeFile.ContentLength())
 		if fakeFile.Finished() {
+			w.WriteHeader(http.StatusCreated)
 			jsonData := readFile(t, "fake_drive_item.json")
 			fmt.Fprint(w, string(jsonData))
-			w.WriteHeader(http.StatusCreated)
 		} else {
+			w.WriteHeader(http.StatusAccepted)
 			jsonData := readFile(t, "fake_upload_session_response.json")
 			fmt.Fprint(w, string(jsonData))
-			w.WriteHeader(http.StatusAccepted)
 		}
 	})
 
@@ -155,8 +155,8 @@ func TestDriveItem_UploadLargeFile_UploadSessionError(t *testing.T) {
 	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id:/fake_file_name:/createUploadSession", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "POST")
 		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, string(jsonData))
 	})
 
 	_, err := driveItem.UploadLargeFile(context.Background(), fakeFile)
@@ -207,9 +207,9 @@ func TestDriveItem_UploadLargeFile_UploadFailed(t *testing.T) {
 		testMethod(t, r, "PUT")
 		testHeader(t, r, "Content-Range", fakeFile.ContentRange())
 		testHeader(t, r, "Content-Length", fakeFile.ContentLength())
+		w.WriteHeader(http.StatusInternalServerError)
 		jsonData := readFile(t, "fake_error.json")
 		fmt.Fprint(w, string(jsonData))
-		w.WriteHeader(http.StatusInternalServerError)
 	})
 
 	_, err := driveItem.UploadLargeFile(context.Background(), fakeFile)
@@ -279,12 +279,12 @@ func TestDriveItem_Copy(t *testing.T) {
 	url := driveItem.url.baseURL.String() + "async_job"
 	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/copy", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "POST")
-		expectedRequestBody := getDataFromFile[*resources.CopyRequest](t, "fake_copy_request_body.json")
+		expectedRequestBody := getDataFromFile[*resources.DriveItem](t, "fake_copy_request_body.json")
 		testBody(t, r, expectedRequestBody)
 
 		w.Header().Set("Location", url)
-		w.Write(nil)
 		w.WriteHeader(http.StatusAccepted)
+		w.Write(nil)
 	})
 
 	ctx := context.Background()
@@ -293,7 +293,7 @@ func TestDriveItem_Copy(t *testing.T) {
 			Id: "fake_parent_drive_item_id",
 		},
 		drive: driveItem.drive,
-	})
+	}, "fake_name")
 	if err != nil {
 		t.Errorf("DriveItem.Copy returned error: %v", err)
 	}
@@ -318,8 +318,59 @@ func TestDriveItem_Copy_Failed(t *testing.T) {
 			Id: "fake_parent_drive_item_id",
 		},
 		drive: driveItem.drive,
-	})
+	}, "")
 	if err == nil {
 		t.Errorf("DriveItem.Copy should return error")
+	}
+}
+
+func TestDriveItem_Move(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+		expectedRequestBody := getDataFromFile[*resources.DriveItem](t, "fake_move_request_body.json")
+		testBody(t, r, expectedRequestBody)
+
+		jsonData := readFile(t, "fake_drive_item.json")
+		fmt.Fprint(w, string(jsonData))
+	})
+
+	ctx := context.Background()
+	item, err := driveItem.Move(ctx, &DriveItem{
+		DriveItem: &resources.DriveItem{
+			Id: "fake_parent_drive_item_id",
+		},
+		drive: driveItem.drive,
+	}, "fake_name")
+	if err != nil {
+		t.Errorf("DriveItem.Move returned error: %v", err)
+	}
+	expectedItem := getDataFromFile[*resources.DriveItem](t, "fake_drive_item.json")
+	if !reflect.DeepEqual(item.DriveItem, expectedItem) {
+		t.Errorf("DriveItem.Move returned %+v, want %+v", item.DriveItem, expectedItem)
+	}
+}
+
+func TestDriveItem_Move_Failed(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+		jsonData := readFile(t, "fake_error.json")
+		fmt.Fprint(w, string(jsonData))
+	})
+
+	ctx := context.Background()
+	_, err := driveItem.Move(ctx, &DriveItem{
+		DriveItem: &resources.DriveItem{
+			Id: "fake_parent_drive_item_id",
+		},
+		drive: driveItem.drive,
+	}, "")
+	if err == nil {
+		t.Errorf("DriveItem.Move should return error")
 	}
 }

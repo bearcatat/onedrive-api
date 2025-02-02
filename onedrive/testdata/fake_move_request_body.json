@@ -1,6 +1,5 @@
 {
   "parentReference": {
-    "driveId": "fake_drive_id",
     "id": "fake_parent_drive_item_id"
   },
   "Name": "fake_name"
