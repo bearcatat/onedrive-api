@@ -7,19 +7,19 @@ import (
 	"reflect"
 )
 
-type HttpResponse struct {
+type JsonResponse struct {
 	response *http.Response
 	body     []byte
 	header   http.Header
 }
 
-func NewResponse(response *http.Response) *HttpResponse {
-	return &HttpResponse{
+func NewJsonResponse(response *http.Response) *JsonResponse {
+	return &JsonResponse{
 		response: response,
 	}
 }
 
-func (r *HttpResponse) UnMarshal(target interface{}) error {
+func (r *JsonResponse) UnMarshal(target interface{}) error {
 	r.header = r.response.Header
 	err := r.readAndSetBody()
 	if err != nil {
@@ -28,7 +28,7 @@ func (r *HttpResponse) UnMarshal(target interface{}) error {
 	return r.unMarshal(target)
 }
 
-func (r *HttpResponse) readAndSetBody() error {
+func (r *JsonResponse) readAndSetBody() error {
 	defer r.response.Body.Close()
 	var err error
 	r.body, err = io.ReadAll(r.response.Body)
@@ -38,7 +38,7 @@ func (r *HttpResponse) readAndSetBody() error {
 	return nil
 }
 
-func (r *HttpResponse) unMarshal(target interface{}) error {
+func (r *JsonResponse) unMarshal(target interface{}) error {
 	if err := r.unmarshalError(); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (r *HttpResponse) unMarshal(target interface{}) error {
 
 }
 
-func (r *HttpResponse) unmarshalError() error {
+func (r *JsonResponse) unmarshalError() error {
 	if len(r.body) == 0 {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (r *HttpResponse) unmarshalError() error {
 	return errorResponse.GetError()
 }
 
-func (r *HttpResponse) unmarshalBodyToTarget(target interface{}) error {
+func (r *JsonResponse) unmarshalBodyToTarget(target interface{}) error {
 	if r.response.StatusCode == http.StatusNoContent {
 		return nil
 	}
@@ -70,7 +70,7 @@ func (r *HttpResponse) unmarshalBodyToTarget(target interface{}) error {
 	return json.Unmarshal(r.body, target)
 }
 
-func (r *HttpResponse) unmarshalHeaderToTarget(target interface{}) error {
+func (r *JsonResponse) unmarshalHeaderToTarget(target interface{}) error {
 	targetV, targetT, isNil := indirect(reflect.ValueOf(target))
 	if isNil {
 		return nil
@@ -82,7 +82,7 @@ func (r *HttpResponse) unmarshalHeaderToTarget(target interface{}) error {
 	return nil
 }
 
-func (r *HttpResponse) setTargetFieldByHeaderTag(fieldT reflect.StructField, fieldV reflect.Value) {
+func (r *JsonResponse) setTargetFieldByHeaderTag(fieldT reflect.StructField, fieldV reflect.Value) {
 	tag := fieldT.Tag.Get("header")
 	headerValue := r.header.Get(tag)
 	if headerValue == "" {

@@ -2,7 +2,9 @@ package onedrive
 
 import (
 	"context"
+	"io"
 	http2 "net/http"
+	"net/url"
 
 	"github.com/bearcatat/onedrive-api/http"
 	"github.com/bearcatat/onedrive-api/resources"
@@ -86,7 +88,7 @@ func (i *DriveItem) uploadFileFragmentToUploadSession(ctx context.Context, file 
 	if err != nil {
 		return nil, err
 	}
-	err = i.client.Do(ctx, req, &response)
+	err = i.client.DoWithoutAuth(ctx, req, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -156,4 +158,18 @@ func (i *DriveItem) ListChildren(ctx context.Context) (*Children, error) {
 func (i *DriveItem) listChildrenRequest() http.Request {
 	url := i.url.ListChildren(i.drive.Id, i.DriveItem.Id)
 	return http.NewJsonRequest(http2.MethodGet, url, nil)
+}
+
+func (i *DriveItem) Download(ctx context.Context, writer io.Writer) error {
+	return i.client.Download(ctx, i.downloadRequest(), writer)
+}
+
+func (i *DriveItem) downloadRequest() http.Request {
+	var downloadURL *url.URL
+	if i.DriveItem.DownloadURL != "" {
+		downloadURL, _ = url.Parse(i.DriveItem.DownloadURL)
+	} else {
+		downloadURL = i.url.Download(i.drive.Id, i.DriveItem.Id)
+	}
+	return http.NewJsonRequest(http2.MethodGet, downloadURL, nil)
 }

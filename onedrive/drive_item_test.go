@@ -1,6 +1,7 @@
 package onedrive
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -410,5 +411,73 @@ func TestDriveItem_ListChildren_Failed(t *testing.T) {
 	_, err := driveItem.ListChildren(ctx)
 	if err == nil {
 		t.Errorf("DriveItem.ListChildren should return error")
+	}
+}
+
+func TestDriveItem_Download(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	downloadURL := driveItem.url.baseURL.String() + "fake_download_url"
+	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/content", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		w.Header().Set("Location", downloadURL)
+		w.WriteHeader(http.StatusFound)
+	})
+
+	mux.HandleFunc("/fake_download_url", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.WriteHeader(http.StatusOK)
+		payload := readFile(t, "fake_file.txt")
+		n, err := w.Write(payload)
+		if err != nil {
+			t.Errorf("DriveItem.Download returned error: %v", err)
+		}
+		t.Log(n)
+	})
+
+	ctx := context.Background()
+	writer := &bytes.Buffer{}
+	err := driveItem.Download(ctx, writer)
+	if err != nil {
+		t.Errorf("DriveItem.Download returned error: %v", err)
+	}
+
+	expected := readFile(t, "fake_file.txt")
+	if !bytes.Equal(writer.Bytes(), expected) {
+		t.Errorf("DriveItem.Download returned %+v, want %+v", writer.Bytes(), expected)
+	}
+}
+
+func TestDriveItem_Download_UseDownloadURL(t *testing.T) {
+	driveItem, mux, teardown := setup_drive_item()
+	defer teardown()
+
+	downloadURL := driveItem.url.baseURL.String() + "fake_download_url"
+	driveItem.DownloadURL = downloadURL
+
+	mux.HandleFunc("/fake_download_url", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.WriteHeader(http.StatusOK)
+		payload := readFile(t, "fake_file.txt")
+		n, err := w.Write(payload)
+		if err != nil {
+			t.Errorf("DriveItem.Download returned error: %v", err)
+		}
+		t.Log(n)
+	})
+
+	ctx := context.Background()
+	writer := &bytes.Buffer{}
+	err := driveItem.Download(ctx, writer)
+	if err != nil {
+		t.Errorf("DriveItem.Download returned error: %v", err)
+	}
+
+	expected := readFile(t, "fake_file.txt")
+	if !bytes.Equal(writer.Bytes(), expected) {
+		t.Errorf("DriveItem.Download returned %+v, want %+v", writer.Bytes(), expected)
 	}
 }

@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -15,12 +17,16 @@ func NewHttpClientWithOauth2(client *http.Client) *HttpClientWithOauth2 {
 	}
 }
 
-func (c *HttpClientWithOauth2) Do(ctx context.Context, req Request, target interface{}) error {
-	return NewHttpClient(&http.Client{}).Do(ctx, req, target)
+func (c *HttpClientWithOauth2) DoWithoutAuth(ctx context.Context, req Request, target interface{}) error {
+	return NewHttpClient(&http.Client{}).DoRequestAndParseResponse(ctx, req, target)
 }
 
 func (c *HttpClientWithOauth2) DoWithAuth(ctx context.Context, req Request, target interface{}) error {
-	return c.oauth2Client.Do(ctx, req, target)
+	return c.oauth2Client.DoRequestAndParseResponse(ctx, req, target)
+}
+
+func (c *HttpClientWithOauth2) Download(ctx context.Context, req Request, writer io.Writer) error {
+	return c.oauth2Client.Download(ctx, req, writer)
 }
 
 type HttpClient struct {
@@ -33,15 +39,29 @@ func NewHttpClient(client *http.Client) *HttpClient {
 	}
 }
 
-func (c *HttpClient) Do(ctx context.Context, req Request, target interface{}) error {
+func (c *HttpClient) DoRequestAndParseResponse(ctx context.Context, req Request, target interface{}) error {
 	resp, err := c.do(ctx, req)
 	if err != nil {
 		return err
 	}
-	return resp.UnMarshal(target)
+	jsonResp := NewJsonResponse(resp)
+	return jsonResp.UnMarshal(target)
 }
 
-func (c *HttpClient) do(ctx context.Context, request Request) (*HttpResponse, error) {
+func (c *HttpClient) Download(ctx context.Context, req Request, writer io.Writer) error {
+	resp, err := c.do(ctx, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusPartialContent {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	_, err = io.Copy(writer, resp.Body)
+	return err
+}
+
+func (c *HttpClient) do(ctx context.Context, request Request) (*http.Response, error) {
 	httpRequest, err := request.GetHttpRequest()
 	if err != nil {
 		return nil, err
@@ -51,7 +71,7 @@ func (c *HttpClient) do(ctx context.Context, request Request) (*HttpResponse, er
 	if err != nil {
 		return nil, c.handleError(ctx, err)
 	}
-	return NewResponse(resp), nil
+	return resp, nil
 }
 
 func (c *HttpClient) handleError(ctx context.Context, err error) error {
