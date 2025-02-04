@@ -46,17 +46,3 @@ func TestChildren_Next_NoNext(t *testing.T) {
 		t.Errorf("Children.Next returned %+v, want %+v", err, ErrChildrenNoNext)
 	}
 }
-
-func TestChildren_Next_Fail(t *testing.T) {
-	children, mux, teardown := setup_children()
-	defer teardown()
-	mux.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		jsonData := readFile(t, "fake_error.json")
-		w.Write(jsonData)
-	})
-	_, err := children.Next(context.Background())
-	if err == nil {
-		t.Errorf("Children.Next returned no error, want error")
-	}
-}

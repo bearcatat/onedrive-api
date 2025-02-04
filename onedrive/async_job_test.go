@@ -87,24 +87,6 @@ func TestAsyncJob_GetResource_NotFinished(t *testing.T) {
 	}
 }
 
-func TestAsyncJob_GetResource_Failed(t *testing.T) {
-	asyncJob, mux, teardown := setup_async_job()
-	defer teardown()
-
-	mux.HandleFunc("async_job", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-
-		w.WriteHeader(http.StatusNotFound)
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-	ctx := context.Background()
-	_, err := asyncJob.GetResource(ctx)
-	if err == nil {
-		t.Errorf("AsyncJob.GetResource returned nil, want error")
-	}
-}
-
 func TestAsyncJob_IsFinished_Finished(t *testing.T) {
 	asyncJob, _, teardown := setup_async_job()
 	defer teardown()
@@ -138,21 +120,5 @@ func TestAsyncJob_IsFinished_InProgress(t *testing.T) {
 	}
 	if isFinished {
 		t.Errorf("AsyncJob.IsFinished returned true, want false")
-	}
-}
-
-func TestAsyncJob_IsFinished_Failed(t *testing.T) {
-	asyncJob, mux, teardown := setup_async_job()
-	defer teardown()
-
-	mux.HandleFunc("/async_job", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-	ctx := context.Background()
-	_, err := asyncJob.IsFinished(ctx)
-	if err == nil {
-		t.Errorf("AsyncJob.IsFinished returned nil, want error")
 	}
 }

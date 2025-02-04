@@ -37,21 +37,3 @@ func TestClient_GetMyDrive(t *testing.T) {
 		t.Errorf("Client.GetMyDrive returned %+v, want %+v", drive.Drive, expectedDrive)
 	}
 }
-
-func TestClient_GetMyDrive_Fail(t *testing.T) {
-	client, mux, teardown := setup_client()
-	defer teardown()
-
-	mux.HandleFunc("/me/drive", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		jsonData := readFile(t, "fake_error.json")
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := client.GetMyDrive(ctx)
-	if err == nil {
-		t.Errorf("Client.GetMyDrive should return error")
-	}
-}

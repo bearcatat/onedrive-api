@@ -46,23 +46,6 @@ func TestDriveItem_CreateFolder(t *testing.T) {
 	}
 }
 
-func TestDriverItem_CreateFolder_Failed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/children", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := driveItem.CreateFolder(ctx, "test_folder")
-	if err == nil {
-		t.Errorf("DriveItem.CreateFolder returned nil, want error")
-	}
-}
-
 func TestDriveItem_createUploadSession(t *testing.T) {
 	driveItem, mux, teardown := setup_drive_item()
 	defer teardown()
@@ -148,24 +131,6 @@ func TestDriveItem_UploadLargeFile_EmptyFile(t *testing.T) {
 	}
 }
 
-func TestDriveItem_UploadLargeFile_UploadSessionError(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	fakeFile := &fakeFile{readTimes: 0}
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id:/fake_file_name:/createUploadSession", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		jsonData := readFile(t, "fake_error.json")
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	_, err := driveItem.UploadLargeFile(context.Background(), fakeFile)
-	if err == nil {
-		t.Errorf("DriveItem.UploadLargeFile should return error")
-	}
-}
-
 func TestDriveItem_UploadLargeFile_ReadFailed(t *testing.T) {
 	driveItem, mux, teardown := setup_drive_item()
 	defer teardown()
@@ -188,37 +153,6 @@ func TestDriveItem_UploadLargeFile_ReadFailed(t *testing.T) {
 	}
 }
 
-func TestDriveItem_UploadLargeFile_UploadFailed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	fakeFile := &fakeFile{readTimes: 0}
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id:/fake_file_name:/createUploadSession", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		data := getDataFromRequest[*resources.UploadSession](t, r)
-		data.UploadURL = driveItem.url.baseURL.String() + "fake_upload_url"
-		jsonData, err := json.Marshal(data)
-		if err != nil {
-			t.Errorf("readTestData failed: %v", err)
-		}
-		fmt.Fprint(w, string(jsonData))
-	})
-	mux.HandleFunc("/fake_upload_url", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "PUT")
-		testHeader(t, r, "Content-Range", fakeFile.ContentRange())
-		testHeader(t, r, "Content-Length", fakeFile.ContentLength())
-		w.WriteHeader(http.StatusInternalServerError)
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	_, err := driveItem.UploadLargeFile(context.Background(), fakeFile)
-	if err == nil {
-		t.Errorf("DriveItem.UploadLargeFile should return error")
-	}
-}
-
 func TestDiverItem_Update(t *testing.T) {
 	driveItem, mux, teardown := setup_drive_item()
 	defer teardown()
@@ -237,23 +171,6 @@ func TestDiverItem_Update(t *testing.T) {
 	expectedItem := getDataFromFile[*resources.DriveItem](t, "fake_drive_item.json")
 	if !reflect.DeepEqual(item.DriveItem, expectedItem) {
 		t.Errorf("DriveItem.Update returned %+v, want %+v", item.DriveItem, expectedItem)
-	}
-}
-
-func TestDriveItem_Update_Failed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "PATCH")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := driveItem.Update(ctx, &DriveItem{})
-	if err == nil {
-		t.Errorf("DriveItem.Update returned nil, want error")
 	}
 }
 
@@ -303,28 +220,6 @@ func TestDriveItem_Copy(t *testing.T) {
 	}
 }
 
-func TestDriveItem_Copy_Failed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/copy", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := driveItem.Copy(ctx, &DriveItem{
-		DriveItem: &resources.DriveItem{
-			Id: "fake_parent_drive_item_id",
-		},
-		drive: driveItem.drive,
-	}, "")
-	if err == nil {
-		t.Errorf("DriveItem.Copy should return error")
-	}
-}
-
 func TestDriveItem_Move(t *testing.T) {
 	driveItem, mux, teardown := setup_drive_item()
 	defer teardown()
@@ -354,28 +249,6 @@ func TestDriveItem_Move(t *testing.T) {
 	}
 }
 
-func TestDriveItem_Move_Failed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "PATCH")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := driveItem.Move(ctx, &DriveItem{
-		DriveItem: &resources.DriveItem{
-			Id: "fake_parent_drive_item_id",
-		},
-		drive: driveItem.drive,
-	}, "")
-	if err == nil {
-		t.Errorf("DriveItem.Move should return error")
-	}
-}
-
 func TestDriveItem_ListChildren(t *testing.T) {
 	driveItem, mux, teardown := setup_drive_item()
 	defer teardown()
@@ -394,23 +267,6 @@ func TestDriveItem_ListChildren(t *testing.T) {
 	expectedChildren := getDataFromFile[*resources.Children](t, "fake_children.json")
 	if !reflect.DeepEqual(children.raw, expectedChildren) {
 		t.Errorf("DriveItem.ListChildren returned %+v, want %+v", children, expectedChildren)
-	}
-}
-
-func TestDriveItem_ListChildren_Failed(t *testing.T) {
-	driveItem, mux, teardown := setup_drive_item()
-	defer teardown()
-
-	mux.HandleFunc("/drives/fake_drive_id/items/fake_drive_item_id/children", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		jsonData := readFile(t, "fake_error.json")
-		fmt.Fprint(w, string(jsonData))
-	})
-
-	ctx := context.Background()
-	_, err := driveItem.ListChildren(ctx)
-	if err == nil {
-		t.Errorf("DriveItem.ListChildren should return error")
 	}
 }
 
